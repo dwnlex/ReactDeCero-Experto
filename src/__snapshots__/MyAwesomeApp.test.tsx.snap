@@ -1,0 +1,52 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MyAwesomeApp > should match snapshot 1`] = `
+<div>
+  <div>
+    <h1
+      data-testid="first-name-tittle"
+    >
+      My Awesome App
+    </h1>
+    <h3>
+      My name is 
+      dwnlx
+       
+      developer
+    </h3>
+    <p
+      class="mi-clase-css"
+    >
+      I am a software engineer
+    </p>
+    <p>
+      My favorite games are 
+      The Witcher 3, The Elder Scrolls V: Skyrim, The Last of Us, The Witcher 3, The Elder Scrolls V: Skyrim, The Last of Us
+    </p>
+    <p>
+      My age is 
+      35
+    </p>
+    <p>
+      I am a developer: 
+      Yes
+    </p>
+    <p>
+      My address is 
+      123 Main St
+      , 
+      Anytown
+      , 
+      CA
+      , 
+      12345
+    </p>
+    <p
+      style="color: red; font-size: 20px; font-weight: bold; background-color: black;"
+    >
+      My address is 
+      123 Main St, Anytown, CA, 12345
+    </p>
+  </div>
+</div>
+`;

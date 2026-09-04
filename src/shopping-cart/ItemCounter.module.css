@@ -1,0 +1,15 @@
+.itemRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.item-text {
+  width: 10050px;
+  /* color: count === 1 ? 'red' : 'black'; */
+}
+
+.color-red {
+  color: red;
+}
