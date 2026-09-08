@@ -1,0 +1,92 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+concurrency:
+  group: issue-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    if: >-
+      github.event.issue.author_association == 'OWNER' ||
+      github.event.issue.author_association == 'MEMBER' ||
+      github.event.issue.author_association == 'COLLABORATOR'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude issue triage
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: >-
+            --allowedTools "Read,Grep,Glob,Bash(gh issue view:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh label create:*),Bash(git log:*),Bash(git grep:*)"
+          prompt: |
+            Eres el triador automático de issues del repositorio ${{ github.repository }}.
+            Trabajas en español. El issue a analizar es el número ${{ github.event.issue.number }}.
+            Este proyecto es un curso de React (Vite + React 19 + TypeScript); el código fuente está en `src/`.
+
+            ## 1. Reunir contexto
+            - Ejecuta: `gh issue view ${{ github.event.issue.number }} --json title,body,labels,comments,author`
+            - Inspecciona el código relevante con Read / Grep / Glob para entender qué parte del proyecto
+              toca el issue. Usa `git log` / `git grep` si necesitas historial.
+
+            ## 2. Asignar labels
+            Taxonomía canónica (usa EXACTAMENTE estos nombres):
+            - type/bug, type/feature, type/enhancement, type/docs, type/question, type/refactor, type/test, type/chore
+            - area/components, area/hooks, area/state, area/routing, area/styling, area/build, area/ci, area/testing
+            - priority/low, priority/medium, priority/high
+            - needs-info
+
+            Para cada label que vayas a usar y que no exista aún en el repo, créala primero:
+            `gh label create "<nombre>" --color <hex-sin-#> --description "<descripción corta>" --force`
+            (colores sugeridos: type/* = d73a4a, area/* = 0e8a16, priority/low = c2e0c6,
+            priority/medium = fbca04, priority/high = b60205, needs-info = d876e3)
+
+            Reglas de aplicación:
+            - Exactamente 1 label `type/*`.
+            - Entre 0 y 2 labels `area/*`.
+            - Opcionalmente 1 label `priority/*`.
+            - Añade `needs-info` si el issue no da información suficiente para diagnosticar.
+            - No elimines labels ya presentes salvo que sean claramente incorrectos.
+
+            Aplica el subconjunto elegido con:
+            `gh issue edit ${{ github.event.issue.number }} --add-label "label1,label2,label3"`
+
+            ## 3. Publicar comentario de diagnóstico (en español)
+            Primero revisa los comentarios del issue en busca de uno previo tuyo que contenga
+            el marcador `<!-- claude-issue-triage -->`.
+            - Si el último comentario del issue es ese comentario tuyo, actualízalo:
+              escribe el cuerpo nuevo en un archivo y ejecuta
+              `gh issue comment ${{ github.event.issue.number }} --edit-last --body-file <archivo>`
+            - En cualquier otro caso, crea un comentario nuevo con `--body-file`.
+
+            El cuerpo del comentario DEBE empezar con la línea literal:
+            `<!-- claude-issue-triage -->`
+            y luego contener, con encabezados en español:
+            - **Resumen**: 1-2 frases sobre qué pide o reporta el issue.
+            - **Área afectada**: archivos o carpetas concretas de `src/` implicadas (con rutas).
+            - **Hipótesis de causa** (si es un bug) o **Enfoque propuesto** (si es feature/mejora).
+            - **Esbozo de solución**: pasos concretos y archivos a tocar para implementar el arreglo.
+            - **Riesgos / preguntas abiertas**.
+            - **Labels aplicados**: lista y motivo breve de cada uno.
+
+            Cierra el comentario con la nota:
+            _"Diagnóstico generado automáticamente; revisar antes de implementar."_
+
+            ## Restricciones
+            - NO modifiques código ni abras pull requests.
+            - NO edites el título ni el cuerpo del issue (solo labels y un comentario).
+            - Sé conciso y concreto; el diagnóstico se usará como base para el PR de solución.
