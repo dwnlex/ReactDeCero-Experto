@@ -24,7 +24,7 @@ export function FirstStepsApp() {
         <p>This is a paragraph - 2</p>
       </div> */}
 
-      <h1>Carrito de compras</h1>
+      <h1>Carrito de compras online</h1>
 
       {itemInCart.map(({ productName, quantity }) => (
         <ItemCounter key={productName} name={productName} quantity={quantity} />
