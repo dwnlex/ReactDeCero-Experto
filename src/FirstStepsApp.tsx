@@ -1,4 +1,5 @@
 import ItemCounter from './shopping-cart/ItemCounter';
+import styles from './FirstStepsApp.module.css';
 
 interface ItemInCart {
   productName: string;
@@ -24,7 +25,7 @@ export function FirstStepsApp() {
         <p>This is a paragraph - 2</p>
       </div> */}
 
-      <h1>Carrito de compras online</h1>
+      <h1 className={styles.title}>Carrito de compras online</h1>
 
       {itemInCart.map(({ productName, quantity }) => (
         <ItemCounter key={productName} name={productName} quantity={quantity} />
